@@ -38,7 +38,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// API routes
+// Ensure DB connection before handling API routes
+app.use('/api/v1', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error('DB connection error:', error);
+    res.status(500).json({ success: false, message: 'Database connection failed' });
+  }
+});
 app.use('/api/v1', routes);
 
 // Health check

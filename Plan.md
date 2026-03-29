@@ -1,6 +1,6 @@
-# Flipkart Clone - Senior Fullstack Execution Plan
+# Flipkart Clone - Fullstack Execution Plan
 
-## 1) Goal and Success Criteria
+## 1) Goal & Criteria
 
 Build a Flipkart-like e-commerce platform with production-style architecture and clean modular code.
 

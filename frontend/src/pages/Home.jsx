@@ -192,7 +192,7 @@ const Home = () => {
           </div>
 
           {/* Sidebar Filters */}
-          <aside className={`fixed inset-0 z-50 bg-white overflow-y-auto lg:static lg:block lg:bg-white lg:rounded-sm lg:shadow-sm lg:p-4 lg:h-fit ${showMobileFilters ? 'block p-4' : 'hidden'}`}>
+          <aside className={`fixed inset-0 z-[110] bg-white overflow-y-auto lg:sticky lg:top-[72px] lg:z-30 lg:block lg:bg-white lg:rounded-sm lg:shadow-sm lg:p-4 lg:h-fit lg:max-h-[calc(100vh-88px)] lg:overflow-y-auto lg:self-start ${showMobileFilters ? 'block p-4' : 'hidden'}`}>
             <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200 lg:border-0 lg:pb-0">
               <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
               <div className="flex items-center gap-4">

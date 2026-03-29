@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import routes from './routes/index.js';
 import { notFound, errorHandler } from './middlewares/errorHandler.js';
 
@@ -16,6 +17,7 @@ app.use(
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // API routes
 app.use('/api/v1', routes);

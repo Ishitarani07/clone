@@ -468,8 +468,9 @@ const seedDatabase = async () => {
     // Create default user
     const defaultUser = await User.create({
       _id: new mongoose.Types.ObjectId(DEFAULT_USER_ID),
-      name: "Ishita",
-      email: "user@flipkart.com",
+      name: "Alok",
+      email: "alok953280@gmail.com",
+      password: "Alok4488",
       phone: "9876543210",
       addresses: [
         {

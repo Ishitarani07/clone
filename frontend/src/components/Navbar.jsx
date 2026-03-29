@@ -1,13 +1,26 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { Heart } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { Heart, LogOut } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const { itemCount } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+      navigate('/');
+    } catch (error) {
+      toast.error('Logout failed');
+    }
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -78,7 +91,7 @@ const Navbar = () => {
                 </span>
                 <div className="hidden sm:flex flex-col text-left leading-tight">
                   <span className="text-xs text-white/80">Hello,</span>
-                  <span className="text-sm font-semibold">Ishita</span>
+                  <span className="text-sm font-semibold">{isAuthenticated ? user.name.split(' ')[0] : 'Guest'}</span>
                 </div>
                 <svg className={`hidden sm:block w-4 h-4 transition-transform ${showProfileMenu ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -115,6 +128,26 @@ const Navbar = () => {
                     </svg>
                     Saved Address
                   </Link>
+                  <hr className="my-2" />
+                  {isAuthenticated ? (
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 w-full text-left text-red-600"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  ) : (
+                    <Link
+                      to="/login"
+                      className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 text-[#2874f0] font-medium"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                      </svg>
+                      Login
+                    </Link>
+                  )}
                 </div>
               )}
             </div>

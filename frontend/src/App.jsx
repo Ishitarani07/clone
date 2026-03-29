@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import Navbar from './components/Navbar';
@@ -12,13 +13,16 @@ import Profile from './pages/Profile';
 import Orders from './pages/Orders';
 import SavedAddresses from './pages/SavedAddresses';
 import Wishlist from './pages/Wishlist';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import './App.css';
 
 function App() {
   return (
     <BrowserRouter>
-      <WishlistProvider>
-        <CartProvider>
+      <AuthProvider>
+        <WishlistProvider>
+          <CartProvider>
           <div className="min-h-screen bg-gray-100">
             <Navbar />
             <Routes>
@@ -31,6 +35,8 @@ function App() {
               <Route path="/orders" element={<Orders />} />
               <Route path="/addresses" element={<SavedAddresses />} />
               <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
             </Routes>
           </div>
           <Toaster
@@ -56,7 +62,8 @@ function App() {
             }}
           />
         </CartProvider>
-      </WishlistProvider>
+        </WishlistProvider>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

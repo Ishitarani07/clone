@@ -1,19 +1,17 @@
-import mongoose from 'mongoose';
 import { Wishlist, Product, Cart } from '../models/index.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendResponse, sendError } from '../utils/apiResponse.js';
-import { DEFAULT_USER_ID } from '../utils/constants.js';
-
-const getUserId = () => new mongoose.Types.ObjectId(DEFAULT_USER_ID);
 
 export const getWishlist = asyncHandler(async (req, res) => {
-  let wishlist = await Wishlist.findOne({ userId: getUserId() }).populate({
+  const userId = req.user._id;
+
+  let wishlist = await Wishlist.findOne({ userId }).populate({
     path: 'items.productId',
     select: 'title slug images finalPrice price brand ratingAverage ratingCount stock',
   });
 
   if (!wishlist) {
-    wishlist = await Wishlist.create({ userId: getUserId(), items: [] });
+    wishlist = await Wishlist.create({ userId, items: [] });
   }
 
   let mutated = false;
@@ -53,15 +51,16 @@ export const getWishlist = asyncHandler(async (req, res) => {
 
 export const addToWishlist = asyncHandler(async (req, res) => {
   const { productId } = req.body;
+  const userId = req.user._id;
 
   const product = await Product.findById(productId);
   if (!product) {
     return sendError(res, 404, 'Product not found');
   }
 
-  let wishlist = await Wishlist.findOne({ userId: getUserId() });
+  let wishlist = await Wishlist.findOne({ userId });
   if (!wishlist) {
-    wishlist = new Wishlist({ userId: getUserId(), items: [] });
+    wishlist = new Wishlist({ userId, items: [] });
   }
 
   const alreadyExists = wishlist.items.some(
@@ -80,8 +79,9 @@ export const addToWishlist = asyncHandler(async (req, res) => {
 
 export const removeFromWishlist = asyncHandler(async (req, res) => {
   const { productId } = req.params;
+  const userId = req.user._id;
 
-  const wishlist = await Wishlist.findOne({ userId: getUserId() });
+  const wishlist = await Wishlist.findOne({ userId });
   if (!wishlist) {
     return sendError(res, 404, 'Wishlist not found');
   }
@@ -104,8 +104,9 @@ export const removeFromWishlist = asyncHandler(async (req, res) => {
 
 export const moveToCart = asyncHandler(async (req, res) => {
   const { productId } = req.params;
+  const userId = req.user._id;
 
-  const wishlist = await Wishlist.findOne({ userId: getUserId() });
+  const wishlist = await Wishlist.findOne({ userId });
   if (!wishlist) {
     return sendError(res, 404, 'Wishlist not found');
   }
@@ -120,9 +121,9 @@ export const moveToCart = asyncHandler(async (req, res) => {
     return sendError(res, 404, 'Product not found');
   }
 
-  let cart = await Cart.findOne({ userId: getUserId() });
+  let cart = await Cart.findOne({ userId });
   if (!cart) {
-    cart = new Cart({ userId: getUserId(), items: [] });
+    cart = new Cart({ userId, items: [] });
   }
 
   const cartItemIndex = cart.items.findIndex(

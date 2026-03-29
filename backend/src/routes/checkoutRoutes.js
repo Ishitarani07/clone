@@ -5,8 +5,11 @@ import {
   getOrderById,
   getOrders,
 } from '../controllers/checkoutController.js';
+import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+router.use(protect);
 
 router.post('/create-razorpay-order', createRazorpayOrder);
 router.post('/verify-payment', verifyPayment);

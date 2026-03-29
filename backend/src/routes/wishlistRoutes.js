@@ -5,8 +5,11 @@ import {
   removeFromWishlist,
   moveToCart,
 } from '../controllers/wishlistController.js';
+import { protect } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
+
+router.use(protect);
 
 router.get('/', getWishlist);
 router.post('/', addToWishlist);

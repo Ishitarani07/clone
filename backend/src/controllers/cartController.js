@@ -1,19 +1,17 @@
 import { Cart, Product } from '../models/index.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendResponse, sendError } from '../utils/apiResponse.js';
-import { DEFAULT_USER_ID } from '../utils/constants.js';
-import mongoose from 'mongoose';
-
-const getUserId = () => new mongoose.Types.ObjectId(DEFAULT_USER_ID);
 
 export const getCart = asyncHandler(async (req, res) => {
-  let cart = await Cart.findOne({ userId: getUserId() }).populate({
+  const userId = req.user._id;
+
+  let cart = await Cart.findOne({ userId }).populate({
     path: 'items.productId',
     select: 'title slug images finalPrice stock',
   });
 
   if (!cart) {
-    cart = { items: [], userId: getUserId() };
+    cart = { items: [], userId };
   }
 
   const cartItems = cart.items.map((item) => ({
@@ -38,6 +36,7 @@ export const getCart = asyncHandler(async (req, res) => {
 
 export const addToCart = asyncHandler(async (req, res) => {
   const { productId, quantity = 1 } = req.body;
+  const userId = req.user._id;
 
   const product = await Product.findById(productId);
   if (!product) {
@@ -48,11 +47,11 @@ export const addToCart = asyncHandler(async (req, res) => {
     return sendError(res, 400, 'Insufficient stock');
   }
 
-  let cart = await Cart.findOne({ userId: getUserId() });
+  let cart = await Cart.findOne({ userId });
 
   if (!cart) {
     cart = new Cart({
-      userId: getUserId(),
+      userId,
       items: [],
     });
   }
@@ -82,6 +81,7 @@ export const addToCart = asyncHandler(async (req, res) => {
 export const updateCartItem = asyncHandler(async (req, res) => {
   const { productId } = req.params;
   const { quantity } = req.body;
+  const userId = req.user._id;
 
   if (quantity < 1) {
     return sendError(res, 400, 'Quantity must be at least 1');
@@ -96,7 +96,7 @@ export const updateCartItem = asyncHandler(async (req, res) => {
     return sendError(res, 400, 'Insufficient stock');
   }
 
-  const cart = await Cart.findOne({ userId: getUserId() });
+  const cart = await Cart.findOne({ userId });
   if (!cart) {
     return sendError(res, 404, 'Cart not found');
   }
@@ -117,8 +117,9 @@ export const updateCartItem = asyncHandler(async (req, res) => {
 
 export const removeCartItem = asyncHandler(async (req, res) => {
   const { productId } = req.params;
+  const userId = req.user._id;
 
-  const cart = await Cart.findOne({ userId: getUserId() });
+  const cart = await Cart.findOne({ userId });
   if (!cart) {
     return sendError(res, 404, 'Cart not found');
   }

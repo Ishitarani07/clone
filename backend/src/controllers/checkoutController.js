@@ -1,12 +1,11 @@
 import crypto from 'crypto';
-import { Cart, Product, Order } from '../models/index.js';
+import { Cart, Product, Order, User } from '../models/index.js';
 import razorpay from '../config/razorpay.js';
 import asyncHandler from '../utils/asyncHandler.js';
 import { sendResponse, sendError } from '../utils/apiResponse.js';
-import { DEFAULT_USER_ID, PAYMENT_STATUS, ORDER_STATUS } from '../utils/constants.js';
-import mongoose from 'mongoose';
-
-const getUserId = () => new mongoose.Types.ObjectId(DEFAULT_USER_ID);
+import { PAYMENT_STATUS, ORDER_STATUS } from '../utils/constants.js';
+import { sendEmail } from '../config/email.js';
+import { orderConfirmationTemplate } from '../utils/emailTemplates.js';
 
 const generateOrderNumber = () => {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -15,7 +14,9 @@ const generateOrderNumber = () => {
 };
 
 export const createRazorpayOrder = asyncHandler(async (req, res) => {
-  const cart = await Cart.findOne({ userId: getUserId() }).populate({
+  const userId = req.user._id;
+
+  const cart = await Cart.findOne({ userId }).populate({
     path: 'items.productId',
     select: 'title finalPrice stock images',
   });
@@ -76,7 +77,9 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   }
 
   // Get cart and calculate totals
-  const cart = await Cart.findOne({ userId: getUserId() }).populate({
+  const userId = req.user._id;
+
+  const cart = await Cart.findOne({ userId }).populate({
     path: 'items.productId',
     select: 'title finalPrice stock images',
   });
@@ -100,7 +103,7 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 
   // Create order
   const order = new Order({
-    userId: getUserId(),
+    userId,
     orderNumber: generateOrderNumber(),
     items: orderItems,
     shippingAddress,
@@ -134,6 +137,21 @@ export const verifyPayment = asyncHandler(async (req, res) => {
   cart.items = [];
   await cart.save();
 
+  // Send order confirmation email
+  try {
+    const user = await User.findById(userId);
+    if (user && user.email) {
+      const emailHtml = orderConfirmationTemplate(order, user);
+      await sendEmail({
+        to: user.email,
+        subject: `Order Confirmed - ${order.orderNumber}`,
+        html: emailHtml,
+      });
+    }
+  } catch (emailError) {
+    console.error('Failed to send order confirmation email:', emailError);
+  }
+
   sendResponse(res, 201, 'Order placed successfully', {
     orderId: order._id,
     orderNumber: order.orderNumber,
@@ -141,7 +159,8 @@ export const verifyPayment = asyncHandler(async (req, res) => {
 });
 
 export const getOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  const userId = req.user._id;
+  const order = await Order.findOne({ _id: req.params.id, userId });
 
   if (!order) {
     return sendError(res, 404, 'Order not found');
@@ -151,7 +170,8 @@ export const getOrderById = asyncHandler(async (req, res) => {
 });
 
 export const getOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ userId: getUserId() })
+  const userId = req.user._id;
+  const orders = await Order.find({ userId })
     .sort({ createdAt: -1 })
     .select('orderNumber items pricing orderStatus placedAt');
 
